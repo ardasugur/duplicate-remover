@@ -20,8 +20,8 @@ This project is a Rust-based utility to detect and handle duplicate files based 
 1. Clone the repository:
 
     ```sh
-    git clone https://github.com/yourusername/your-repo.git
-    cd your-repo
+    git clone https://github.com/ardasugur/duplicate-remover.git
+    cd duplicate-remover
     ```
 
 2. Build and install the project:

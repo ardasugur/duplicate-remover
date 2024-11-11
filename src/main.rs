@@ -10,7 +10,6 @@ use std::{env, io};
 struct MyFile {
     path: String,
     name: String,
-    //content: String,
     hash: String,
 }
 impl MyFile {
@@ -24,7 +23,7 @@ impl MyFile {
             hash: "".to_string(),
         };
         let mut sha = Sha256::new();
-        Sha256::update(&mut sha, &buffer);
+        sha.update(&buffer);
         let res = Sha256::finalize(sha);
         let v = res.iter().map(|x| format!("{:02x}", x)).collect::<Vec<String>>().join("");
         file.hash = v;
@@ -43,7 +42,6 @@ fn work(_path: &str) -> Result<Vec<MyFile>> {
         }
         let file = MyFile::new(entry);
         vec.push(file?);
-        // }
     }
     return Ok(vec);
 }
@@ -51,7 +49,7 @@ fn delete_file(dup_file: &MyFile) {
     fs::remove_file(&dup_file.path).unwrap();
 }
 
-fn help(){
+fn help() {
     println!("example usage:");
     println!("duplicate-remover <path> <options>");
     println!("options:");
@@ -67,21 +65,21 @@ fn main() -> io::Result<()> {
     if args.len() == 3 && &args[2] == "--real-run" {
         dry_run = false;
     }
-    if &args[1]=="-h" {
+    if &args[1] == "-h" {
         help();
         return Ok(());
     }
     let path = &args[1];
 
     if Path::new(path).is_dir() {
-        let mut map = HashMap::<String, MyFile>::new();  // Change the key type to String
+        let mut map = HashMap::<String, MyFile>::new();
         let files = work(&path)?;
         let mut count_dups = 0;
         let mut count_origs = 0;
         for file in files {
             match map.get(&file.hash) {
                 None => {
-                    map.insert(file.hash.clone(), file);  // Insert file.hash as a String
+                    map.insert(file.hash.clone(), file);
                     count_origs += 1;
                 }
                 Some(old) => {
@@ -90,7 +88,7 @@ fn main() -> io::Result<()> {
                         if !dry_run {
                             delete_file(&old);
                         }
-                        map.insert(file.hash.clone(),file);
+                        map.insert(file.hash.clone(), file);
                     } else {
                         println!("{} Delete", &file.name);
                         if !dry_run {
