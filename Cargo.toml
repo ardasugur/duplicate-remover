@@ -2,6 +2,7 @@
 name = "duplicate-remover"
 version = "0.1.0"
 edition = "2021"
+authors = ["Arda Suğur <ardasugur@gmail.com>"]
 
 [dependencies]
 sha2 = "0.11.0-pre.4"
