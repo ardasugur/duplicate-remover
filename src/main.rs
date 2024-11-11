@@ -1,10 +1,10 @@
-use std::collections::HashMap;
-use std::fs::{self, DirEntry};
-use std::{env, io, thread};
-use std::path::Path;
 use sha2::{Digest, Sha256};
+use std::collections::HashMap;
 use std::fs::File;
+use std::fs::{self, DirEntry};
 use std::io::{Read, Result};
+use std::path::Path;
+use std::{env, io};
 
 #[derive(Debug)]
 struct MyFile {
@@ -47,39 +47,57 @@ fn work(_path: &str) -> Result<Vec<MyFile>> {
     }
     return Ok(vec);
 }
-fn delete_file(dup_file: MyFile) {
-    fs::remove_file(dup_file.path).unwrap();
+fn delete_file(dup_file: &MyFile) {
+    fs::remove_file(&dup_file.path).unwrap();
 }
 
+fn help(){
+    println!("example usage:");
+    println!("duplicate-remover <path> <options>");
+    println!("options:");
+    println!("--real-run : deletes your duplicate files");
+}
 fn main() -> io::Result<()> {
     let mut dry_run = true;
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        eprintln!("Usage: {} <path>", args[0]);
-        return Err(io::Error::from(io::ErrorKind::InvalidInput));
+        help();
+        return Ok(());
     }
-    if args.len() ==3 && &args[2] == "--real-run" {
-        dry_run =false;
+    if args.len() == 3 && &args[2] == "--real-run" {
+        dry_run = false;
+    }
+    if &args[1]=="-h" {
+        help();
+        return Ok(());
     }
     let path = &args[1];
 
     if Path::new(path).is_dir() {
         let mut map = HashMap::<String, MyFile>::new();  // Change the key type to String
         let files = work(&path)?;
-        let mut count_dups =0;
-        let mut count_origs =0;
+        let mut count_dups = 0;
+        let mut count_origs = 0;
         for file in files {
             match map.get(&file.hash) {
                 None => {
                     map.insert(file.hash.clone(), file);  // Insert file.hash as a String
-                    count_origs +=1;
+                    count_origs += 1;
                 }
-                Some(_) => {
-                    println!("{} Delete", &file.name);
-                    count_dups +=1;
-                    if !dry_run {
-                        delete_file(file);
+                Some(old) => {
+                    if old.name.len() > file.name.len() {
+                        println!("{} Delete", &old.name);
+                        if !dry_run {
+                            delete_file(&old);
+                        }
+                        map.insert(file.hash.clone(),file);
+                    } else {
+                        println!("{} Delete", &file.name);
+                        if !dry_run {
+                            delete_file(&file);
+                        }
                     }
+                    count_dups += 1;
                 }
             }
         }
